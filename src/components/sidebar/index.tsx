@@ -8,7 +8,6 @@ const menuData = [
     icon: 'i-heroicons-home',
     href: '/dashboard',
   },
-  { key: 'calendar', label: 'Calendar', icon: 'i-heroicons-calendar', href: '/dashboard/calendar' },
   { key: 'Users', label: 'User Profile', icon: 'i-heroicons-user', href: '/dashboard/users' },
   { key: 'report builder', label: 'Report Builder', icon: 'i-heroicons-chat-bubble-left-right', href: '/dashboard/report_builder' },
   { key: 'form builder', label: 'Form Builder', icon: 'i-heroicons-envelope', href: '/dashboard/form_builder' },
