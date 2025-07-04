@@ -3,7 +3,7 @@ import { Link, useNavigate } from '@builder.io/qwik-city';
 import { P9EThemeToggle } from '~/components/utility';
 
 import Image from "/public/images/logo.jpg?jsx";
-import { GlobalStoreContext } from '~/globalStore';
+import { GlobalStoreContext } from '~/globalstore';
 
 
 export default component$(({ toggleSidebar, sidebarVisible }: { toggleSidebar: () => void, sidebarVisible: { value: boolean } }) => {

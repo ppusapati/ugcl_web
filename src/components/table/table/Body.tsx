@@ -5,7 +5,7 @@ function formatDate(val: string, formatStr = 'dd-MM-yyyy') {
   const d = new Date(val);
   if (isNaN(d.getTime())) return val;
   // You can use date-fns for various formats, or a custom formatter for 'DD-MM-YYYY'
-  return format(d, formatStr.replace('DD', 'dd').replace('YYYY', 'yyyy').replace('MM', 'MM'));
+  // return format(d, formatStr.replace('DD', 'dd').replace('YYYY', 'yyyy').replace('MM', 'MM'));
 }
 
 interface bodyProps {

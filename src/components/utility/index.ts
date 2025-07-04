@@ -7,5 +7,4 @@ export * from './store';
 export * from './menu';
 export * from '../layout/sidebar';
 export * from './imageqrl';
-export * from './modal/uploadModal';
 
