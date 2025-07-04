@@ -7,12 +7,6 @@ const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
   // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
   // User table state
   const DairySite = useStore<{
     data: any[];
@@ -80,7 +74,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={DairySite.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchDairySite(DairySite, page);
               console.log('🔁 Page', page, 'returned'); // fetch and update DairySite store
               return [...DairySite.data];

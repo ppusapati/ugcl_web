@@ -6,14 +6,7 @@ import { P9ETable } from '~/components/table';
 const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
-  // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
-  // User table state
+    // User table state
   const nmr_vehicle = useStore<{
     data: any[];
     loading: boolean;
@@ -84,7 +77,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={nmr_vehicle.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchnmr_vehicle(nmr_vehicle, page); // fetch and update nmr_vehicle store
               return [...nmr_vehicle.data];
             }}

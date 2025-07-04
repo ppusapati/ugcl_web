@@ -6,12 +6,7 @@ import { P9ETable } from '~/components/table';
 const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
-  // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
+
 
   // User table state
   const wrapping = useStore<{
@@ -83,7 +78,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={wrapping.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchwrapping(wrapping, page); // fetch and update wrapping store
               return [...wrapping.data];
             }}

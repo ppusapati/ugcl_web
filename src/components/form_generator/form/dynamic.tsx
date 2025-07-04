@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { component$, type QRL, useSignal } from "@builder.io/qwik";
 import { useForm } from "@modular-forms/qwik";
 import { type FormField } from "../types";
@@ -168,32 +168,32 @@ export const DynamicForm = component$((props: DynamicProps<any>) => {
   </Form>
   );
 });
-function mapFieldTypeToDataType(type: string): string | undefined {
-  switch (type) {
-    case "text":
-    case "email":
-    case "password":
-    case "search":
-    case "tel":
-    case "url":
-    case "date":
-    case "datetime-local":
-    case "month":
-    case "week":
-    case "select":
-    case "textarea":
-    case "avatar":
-      return "string";
-    case "number":
-    case "range":
-      return "number";
-    case "checkbox":
-      return "boolean";
-    case "checkbox-array":
-      return "string[]";
-    case "file":
-      return "File";
-    default:
-      return undefined;
-  }
-}
+// function mapFieldTypeToDataType(type: string): string | undefined {
+//   switch (type) {
+//     case "text":
+//     case "email":
+//     case "password":
+//     case "search":
+//     case "tel":
+//     case "url":
+//     case "date":
+//     case "datetime-local":
+//     case "month":
+//     case "week":
+//     case "select":
+//     case "textarea":
+//     case "avatar":
+//       return "string";
+//     case "number":
+//     case "range":
+//       return "number";
+//     case "checkbox":
+//       return "boolean";
+//     case "checkbox-array":
+//       return "string[]";
+//     case "file":
+//       return "File";
+//     default:
+//       return undefined;
+//   }
+// }

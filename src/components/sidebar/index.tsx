@@ -1,4 +1,4 @@
-import { component$, PropFunction, useStore } from '@builder.io/qwik';
+import { component$, PropFunction } from '@builder.io/qwik';
 
 const menuData = [
 
@@ -32,10 +32,10 @@ export default component$((props: {
   collapsed: boolean;
   onToggle$: PropFunction<() => void>;
 }) => {
-  const state = useStore({
-    openKey: 'dashboard', // default open
-  });
-  const { collapsed, onToggle$ } = props;
+  // const state = useStore({
+  //   openKey: 'dashboard', // default open
+  // });
+  const { collapsed } = props;
   return (
     <aside class={[
       "fixed left-0 top-0 z-40 h-screen flex flex-col overflow-y-hidden",

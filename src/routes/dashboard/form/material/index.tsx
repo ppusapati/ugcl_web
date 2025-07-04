@@ -6,13 +6,6 @@ import { P9ETable } from '~/components/table';
 const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
-  // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
   // User table state
   const Material = useStore<{
     data: any[];
@@ -86,7 +79,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={Material.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchMaterial(Material, page); // fetch and update Material store
               return [...Material.data];
             }}

@@ -4,6 +4,7 @@ import { isImage } from '../utils/imageBool';
 function formatDate(val: string, formatStr = 'dd-MM-yyyy') {
   const d = new Date(val);
   if (isNaN(d.getTime())) return val;
+  console.log(formatStr)
   // You can use date-fns for various formats, or a custom formatter for 'DD-MM-YYYY'
   // return format(d, formatStr.replace('DD', 'dd').replace('YYYY', 'yyyy').replace('MM', 'MM'));
 }
@@ -32,8 +33,7 @@ const computedPosts = useComputed$(() => {
 
   const start = props.pageNo.value * props.postPerPage.value;
   const end = start + parseInt(props.postPerPage.value.toString());
-
-  return Array.isArray(props.data)
+  return Array.isArray([...props.data])
     ? props.data.slice(start, end)
     : [];
 });

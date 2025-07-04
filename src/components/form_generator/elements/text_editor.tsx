@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { component$, useStore, useSignal, useVisibleTask$, type PropFunction } from '@builder.io/qwik';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';

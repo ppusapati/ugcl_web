@@ -1,32 +1,40 @@
-import { component$, $, useSignal, useContext } from '@builder.io/qwik';
+import { component$, $, useSignal, useContext, QRL, Signal } from '@builder.io/qwik';
 import { Link, useNavigate } from '@builder.io/qwik-city';
 import { P9EThemeToggle } from '~/components/utility';
 
 import Image from "/public/images/logo.jpg?jsx";
 import { GlobalStoreContext } from '~/globalstore';
 
-
-export default component$(({ toggleSidebar, sidebarVisible }: { toggleSidebar: () => void, sidebarVisible: { value: boolean } }) => {
+// Fix: Wrap the toggleSidebar function with $()
+export default component$(({ toggleSidebar, sidebarVisible }: { toggleSidebar: QRL<() => void>, sidebarVisible: Signal<boolean>}) => {
   const dropdownVisible = useSignal(false);
   const nav = useNavigate();
   const ctx = useContext(GlobalStoreContext);
+  
   const handleSubmit = $(() => {
     ctx.isAuth = false;
     nav('/auth');
   });
+  
   const handleDropdownToggle = $(() => {
     dropdownVisible.value = !dropdownVisible.value;
   });
+
+  // Fix: Create a wrapped version of toggleSidebar
+  const handleSidebarToggle = $(() => {
+    toggleSidebar();
+  });
+
   return (
     <nav class="fixed top-0 z-50 w-full border-b border-gray-200 bg-white border-solid dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div class="flex items-center justify-start rtl:justify-end">
-        <button
+          <button
             data-drawer-target="logo-sidebar"
             data-drawer-toggle="logo-sidebar"
             aria-controls="logo-sidebar"
             type="button"
-            onClick$={toggleSidebar}
+            onClick$={handleSidebarToggle}
             class="contents items-center p-0 text-sm md:hidden hover:bg-gray-100 border-none focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >        
             <span class="sr-only">Open sidebar</span>
@@ -42,11 +50,14 @@ export default component$(({ toggleSidebar, sidebarVisible }: { toggleSidebar: (
           </li>
           <li>
             <Link class='block py-2 px-3 text-xl text-white bg-primary-700 rounded md:bg-transparent md:text-primary-700 md:p-0 dark:text-white md:dark:text-primary-500 no-underline' href='/admin/recruitments/'>Recruitments</Link>
-          </li><li>
+          </li>
+          <li>
             <Link class='block py-2 px-3 text-xl text-white bg-primary-700 rounded md:bg-transparent md:text-primary-700 md:p-0 dark:text-white md:dark:text-primary-500 no-underline' href='/admin/projects/'>Projects</Link>
-          </li><li>
+          </li>
+          <li>
             <Link class='block py-2 px-3 text-xl text-white bg-primary-700 rounded md:bg-transparent md:text-primary-700 md:p-0 dark:text-white md:dark:text-primary-500 no-underline' href='#'>Document System</Link>
-          </li><li>
+          </li>
+          <li>
             <Link class='block py-2 px-3 text-xl text-white bg-primary-700 rounded md:bg-transparent md:text-primary-700 md:p-0 dark:text-white md:dark:text-primary-500 no-underline' href='#'>Content Managment</Link>
           </li>
           <li>
@@ -55,48 +66,47 @@ export default component$(({ toggleSidebar, sidebarVisible }: { toggleSidebar: (
         </ul>
         <div class="flex items-center">
           <div class="inline-flex gap-col-5">
-   <span class='pt-1.5'><P9EThemeToggle /></span>
+            <span class='pt-1.5'><P9EThemeToggle /></span>
 
-              <button
-                type="button"
-                onClick$={handleDropdownToggle}
-                class="flex text-sm bg-dark-100 rounded-full p-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-dark-100"
-                aria-expanded="false"
-                data-dropdown-toggle="dropdown-user"
-              >
-                <span class="sr-only">Open user menu</span>
-                <img
-                  class="w-8 h-8 rounded-full"
-                  src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-                  alt="user photo"
-                />
-              </button>
+            <button
+              type="button"
+              onClick$={handleDropdownToggle}
+              class="flex text-sm bg-dark-100 rounded-full p-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-dark-100"
+              aria-expanded="false"
+              data-dropdown-toggle="dropdown-user"
+            >
+              <span class="sr-only">Open user menu</span>
+              <img
+                class="w-8 h-8 rounded-full"
+                src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                alt="user photo"
+              />
+            </button>
             {dropdownVisible.value &&(
-           <div id="dropdownAvatar" class="flex flex-col items-center absolute right-0 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-           <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-             <div>Bonnie Green</div>
-             <div class="font-medium truncate">name@flowbite.com</div>
-           </div>
-           <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
-             <li>
-               <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
-             </li>
-             <li>
-               <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>
-             </li>
-             <li>
-               <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a>
-             </li>
-           </ul>
-           <div class="py-2">
-             <Link onClick$={handleSubmit}  class="btn btn-success btns-lg">Sign out</Link>
-           </div>
-       </div>
+              <div id="dropdownAvatar" class="flex flex-col items-center absolute right-0 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                  <div>Bonnie Green</div>
+                  <div class="font-medium truncate">name@flowbite.com</div>
+                </div>
+                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
+                  <li>
+                    <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
+                  </li>
+                  <li>
+                    <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>
+                  </li>
+                  <li>
+                    <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a>
+                  </li>
+                </ul>
+                <div class="py-2">
+                  <Link onClick$={handleSubmit} class="btn btn-success btns-lg">Sign out</Link>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
-  </nav>
-
+    </nav>
   );
 });

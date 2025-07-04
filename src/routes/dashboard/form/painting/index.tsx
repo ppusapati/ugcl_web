@@ -1,7 +1,4 @@
 import { component$, useStore, $, useVisibleTask$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import { InitialValues } from '@modular-forms/qwik';
-import { DynamicForm, FormField, P9EForm } from '~/components/form_generator';
 import { P9ETable } from '~/components/table';
 
 
@@ -10,12 +7,6 @@ const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
   // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
   // User table state
   const Paintings = useStore<{
     data: any[];
@@ -88,7 +79,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={Paintings.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchPaintings(Paintings, page); // fetch and update Paintings store
               return [...Paintings.data];
             }}

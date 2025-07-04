@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { $, Signal, component$, useStylesScoped$ } from '@builder.io/qwik';
 
 interface searchProps {

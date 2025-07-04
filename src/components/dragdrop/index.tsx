@@ -3,7 +3,7 @@ import { $, component$, useSignal } from '@builder.io/qwik';
 import type { Component } from '@builder.io/qwik';
 
 interface DragAndDropContainerProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   components: Array<{ id: number; component: Component; props?: any }>;
 }
 

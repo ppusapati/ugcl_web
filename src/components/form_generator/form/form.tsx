@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 // src/components/DynamicForm.tsx
 import { $, component$, type PropFunction, useStore } from "@builder.io/qwik";
 import { P9EButton } from "../elements/button";

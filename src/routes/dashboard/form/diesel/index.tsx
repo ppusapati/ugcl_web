@@ -7,13 +7,7 @@ const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
   // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
-  // User table state
+   // User table state
   const Diesel = useStore<{
     data: any[];
     loading: boolean;
@@ -88,7 +82,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={Diesel.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchDiesel(Diesel, page); // fetch and update Diesel store
               return [...Diesel.data];
             }}

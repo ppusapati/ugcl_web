@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Signal, component$, useStylesScoped$, $, useComputed$ } from '@builder.io/qwik';
 
 interface pageProps {

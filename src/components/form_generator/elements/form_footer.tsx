@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { type ActionStore, Form } from '@builder.io/qwik-city';
 import { type FormStore, reset } from '@modular-forms/qwik';
 import { P9EButton } from './button';

@@ -8,7 +8,7 @@ type LikertTableProps = {
 };
 
 export const P9ELikertView = component$((props: LikertTableProps) => {
-  const { columnHeaders, rowHeaders, radioGroupPrefix, onCapture$ } = props;
+  const { columnHeaders, rowHeaders, radioGroupPrefix} = props;
 
   const tableData = useStore({
     selectedValues: {} as Record<number, number>, // To store selected column index for each row
@@ -16,7 +16,6 @@ export const P9ELikertView = component$((props: LikertTableProps) => {
 
   const updateRadio = $((rowIndex: number, colIndex: number) => {
     tableData.selectedValues[rowIndex] = colIndex;
-    onCapture$(tableData.selectedValues); // Capture the updated table data
   });
 
   return (

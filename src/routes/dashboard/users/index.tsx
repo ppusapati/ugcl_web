@@ -1,7 +1,7 @@
 import { component$, useStore, $, useVisibleTask$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { InitialValues } from '@modular-forms/qwik';
-import { DynamicForm, FormField, P9EForm } from '~/components/form_generator';
+import { DynamicForm, FormField } from '~/components/form_generator';
 import { P9ETable } from '~/components/table';
 
 
@@ -76,6 +76,7 @@ export default component$(() => {
       users.data = result.data;
       users.page = result.page -1;
       users.total = result.total;
+      console.log("Total: ", users.total);
       // totalCountSignal.value = result.total;
     } catch (e: any) {
       users.error = e.message || 'Could not load users';
@@ -132,10 +133,10 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={users.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={$(async (page:number, limit: number) => {
               await fetchUsers(users, page); // fetch and update users store
               return [...users.data];
-            }}
+            })}
           />
           
         </div>

@@ -4,8 +4,10 @@ import {
   useSignal,
   useStore,
   $,
-  useVisibleTask$,
-  useStyles$
+  useResource$,
+  useTask$,
+  useStyles$,
+  QRL
 } from '@builder.io/qwik';
 import { Pagination } from './Pagination';
 import { sortData } from '../utils/sortData';
@@ -24,11 +26,10 @@ interface TableProps<T = any> {
   data: T[];
   title: string;
   headerImg?: string;
-defaultLimit?: number;
+  defaultLimit?: number;
   serverPagination?: boolean;
   totalCount?: number;
-  onPageChange$?: (page: number, limit: number) => Promise<T[]>;
-
+  onPageChange$?: QRL<(page: number, limit: number) => Promise<T[]>>;
   enableSearch?: boolean;
   enableSort?: boolean;
 }
@@ -37,6 +38,7 @@ export const P9ETable = component$(
   <T extends { [key: string]: string | number | null | undefined }>(
     props: TableProps<T>
   ) => {
+    const onPageChangeQrl = props.onPageChange$;
     useStyles$(`table {
       border-collapse: collapse;
       width: 100%;
@@ -66,13 +68,21 @@ export const P9ETable = component$(
     const loading = useSignal(false);
     const totalCountSignal = useSignal(props.totalCount ?? 0);
 
+    // Extract serializable props
+    const serverPagination = props.serverPagination;
+    const enableSearch = props.enableSearch;
+    const enableSort = props.enableSort;
+    const totalCount = props.totalCount;
+    const data = props.data;
+console.log("props dfdfdfData: ", data)
     const finalData = useStore<{ items: T[] }>({
       items: Array.isArray(props.data) ? props.data : []
     });
-
+console.log("Final Data: ", finalData); 
+console.log('Final Data items:', [...finalData.items]); 
     const sortedData = $(() =>
       sortData({
-        data: props.data,
+        data: data,
         tableData: finalData.items,
         sortKey,
         sortOrder,
@@ -84,7 +94,7 @@ export const P9ETable = component$(
 
     const searchedData = $(() =>
       searchData({
-        data: props.data,
+        data: data,
         pageNo,
         sortKey,
         sortOrder,
@@ -95,46 +105,75 @@ export const P9ETable = component$(
       })
     );
 
-    // 🔁 Server Pagination: Only track pageNo
-    useVisibleTask$(async ({ track }) => {
-      if (!props.serverPagination) return;
-      track(() => pageNo.value);
-
-      if (props.onPageChange$) {
-        loading.value = true;
-        const result = await props.onPageChange$(pageNo.value, postPerPage.value);
-        finalData.items = result;
-        console.log('Page:', pageNo.value, 'Data:', result, 'Total:', props.totalCount);
-       totalCountSignal.value = props.totalCount ?? result.length;
-        loading.value = false;
+    // Use useResource$ for server pagination - this handles async operations properly
+    const serverDataResource = useResource$(async ({ track }) => {
+      if (!serverPagination || !onPageChangeQrl) {
+        return null;
+      }
+      
+      const currentPage = track(() => pageNo.value);
+      const currentLimit = track(() => postPerPage.value);
+      
+      try {
+        const result = await onPageChangeQrl(currentPage, currentLimit);
+        console.log('Page:', currentPage, 'Data:', result, 'Total:', totalCount);
+        return result;
+      } catch (error) {
+        console.error('Error fetching page data:', error);
+        throw error;
       }
     });
 
+    // Update finalData when server data changes
+    useTask$(async ({ track }) => {
+      if (!serverPagination) return;
+
+    console.log('✅ rows arrived', [...finalData.items]); 
+      
+      const resourceValuePromise = track(() => serverDataResource.value);
+      
+      if (resourceValuePromise) {
+        const resourceValue = await resourceValuePromise;
+        if (resourceValue) {
+          finalData.items = resourceValue;
+          totalCountSignal.value = totalCount ?? resourceValue.length;
+        }
+      }
+    });
+
+    // Handle loading state from resource
+    const isLoading = serverPagination ? serverDataResource.loading : loading.value;
+
     // 🧠 Client Pagination/Sorting/Search: Track all
-    useVisibleTask$(async ({ track }) => {
-  if (props.serverPagination) return;
+    useTask$(async ({ track }) => {
+      if (serverPagination) return;
 
-  track(() => props.data);
-  track(() => sortKey.value);
-  track(() => sortOrder.value);
-  track(() => searchInp.value);
-  track(() => searchBy.value);
-  track(() => pageNo.value);
-  track(() => postPerPage.value);
+      track(() => data);
+      track(() => sortKey.value);
+      track(() => sortOrder.value);
+      track(() => searchInp.value);
+      track(() => searchBy.value);
+      track(() => pageNo.value);
+      track(() => postPerPage.value);
 
-  loading.value = true;
+      loading.value = true;
 
-  if (props.enableSearch && searchInp.value !== '') {
-    finalData.items = await searchedData();
-  } else if (props.enableSort) {
-    finalData.items = (await sortedData()) as T[];
-  } else {
-    finalData.items = props.data;
-  }
+      try {
+        if (enableSearch && searchInp.value !== '') {
+          finalData.items = await searchedData();
+        } else if (enableSort) {
+          finalData.items = (await sortedData()) as T[];
+        } else {
+          finalData.items = data;
+        }
 
-  totalPosts.value = finalData.items?.length ?? 0;
-  loading.value = false;
-});
+        totalPosts.value = finalData.items?.length ?? 0;
+      } catch (error) {
+        console.error('Error processing data:', error);
+      } finally {
+        loading.value = false;
+      }
+    });
 
     const isEmpty = () =>
       !finalData.items || !Array.isArray(finalData.items) || finalData.items.length === 0;
@@ -155,10 +194,10 @@ export const P9ETable = component$(
         <Pagination
           pageNo={pageNo}
           postPerPage={postPerPage}
-          totalPosts={props.serverPagination ? totalCountSignal : totalPosts}
+          totalPosts={serverPagination ? totalCountSignal : totalPosts}
         />
 
-        {loading.value ? (
+        {isLoading ? (
           <div class="text-sm text-center text-gray-500 my-4">Loading...</div>
         ) : isEmpty() ? (
           <div class="text-sm text-center text-red-500 my-4">No records found.</div>
@@ -174,17 +213,17 @@ export const P9ETable = component$(
                 sortKey={sortKey}
               />
               <TableBody
-  data={finalData.items}
-  pageNo={pageNo}
-  postPerPage={postPerPage}
-  header={props.header.map((h) => ({
-    key: String(h.key),
-    label: h.label,
-    type: h.type,
-    format: h.format
-  }))}
-  serverPagination={props.serverPagination}
-/>
+                data={finalData.items}
+                pageNo={pageNo}
+                postPerPage={postPerPage}
+                header={props.header.map((h) => ({
+                  key: String(h.key),
+                  label: h.label,
+                  type: h.type,
+                  format: h.format
+                }))}
+                serverPagination={serverPagination}
+              />
             </table>
 
             <div class="text-xs text-gray-500 mt-2 text-right">
@@ -196,7 +235,7 @@ export const P9ETable = component$(
         <Pagination
           pageNo={pageNo}
           postPerPage={postPerPage}
-          totalPosts={props.serverPagination ? totalCountSignal : totalPosts}
+          totalPosts={serverPagination ? totalCountSignal : totalPosts}
         />
       </div>
     );

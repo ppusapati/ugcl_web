@@ -6,13 +6,6 @@ import { P9ETable } from '~/components/table';
 const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
-  // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
   // User table state
   const vehicle_log = useStore<{
     data: any[];
@@ -92,7 +85,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={vehicle_log.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchvehicle_log(vehicle_log, page); // fetch and update vehicle_log store
               return [...vehicle_log.data];
             }}

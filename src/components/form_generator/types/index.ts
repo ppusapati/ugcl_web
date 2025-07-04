@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import type { PropFunction, NoSerialize, QRL } from "@builder.io/qwik";
 import type { ValidateField, FormStore } from "@modular-forms/qwik";
 

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import type { NoSerialize, Signal, QRL } from '@builder.io/qwik';
 import type { ActionStore } from '@builder.io/qwik-city';
 import type { FieldStore, FieldValue, FieldValues } from './field';

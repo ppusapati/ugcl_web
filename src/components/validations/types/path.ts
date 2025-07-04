@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import type { FieldValue, FieldValues } from './field';
 import type { IsTuple, TupleKeys, ArrayKey } from './utils';
 

@@ -1,12 +1,18 @@
-import type { QRL, JSXNode,  JSXOutput } from "@builder.io/qwik";
+import type { QRL, JSXOutput } from "@builder.io/qwik";
 import { $ } from "@builder.io/qwik";
 
 // Utility function to wrap image components imported with `?jsx`
-export function wrapImageWithQRL (
-    ImageComponent: (props: { class: string; alt: string }) => JSXNode
-  ): QRL<(props: { class: string; alt: string }) => JSXNode> {
-    return $((props: { class: string; alt: string }) => <ImageComponent {...props} /> as JSXNode);
-  }
+export function ImageWrapper({
+  ImageComponent,
+  class: className,
+  alt
+}: {
+  ImageComponent: (props: { class: string; alt: string }) => JSXOutput;
+  class: string;
+  alt: string;
+}) {
+  return <ImageComponent class={className} alt={alt} />;
+}
 
 // Function to create a QRL-wrapped image component
 export function createQRLImageComponent(

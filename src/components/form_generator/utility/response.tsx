@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { component$, useSignal, useTask$ } from "@builder.io/qwik";
 import { isBrowser } from "@builder.io/qwik/build";
 import type { FormResponse } from "@modular-forms/qwik";

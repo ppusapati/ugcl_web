@@ -6,14 +6,7 @@ import { P9ETable } from '~/components/table';
 const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 
 export default component$(() => {
-  // Form state
-  const form = useStore({
-    error: '',
-    success: '',
-    loading: false,
-  });
-
-  // User table state
+   // User table state
   const DPRSite = useStore<{
     data: any[];
     loading: boolean;
@@ -93,7 +86,7 @@ export default component$(() => {
             enableSort
             serverPagination
             totalCount={DPRSite.total}
-            onPageChange$={async (page, limit) => {
+            onPageChange$={async (page) => {
               await fetchDPRSite(DPRSite, page); // fetch and update DPRSite store
               return [...DPRSite.data];
             }}
