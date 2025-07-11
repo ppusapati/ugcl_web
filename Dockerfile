@@ -19,5 +19,6 @@ RUN npm run build
 # Expose port (Cloud Run default is 8080)
 ENV PORT 8080
 
+EXPOSE 8080
 # Start the server
 CMD ["npm", "start"]
