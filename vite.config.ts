@@ -46,7 +46,10 @@ export default defineConfig(({ command, mode }): UserConfig => {
     //         external: Object.keys(dependencies),
     //       }
     //     : undefined,
-
+build: {
+  ssr: 'src/entry.ssr.tsx',
+  outDir: 'dist'
+},
     server: {
       headers: {
         // Don't cache the server response in dev mode

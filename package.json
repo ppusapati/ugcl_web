@@ -21,8 +21,9 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open",
     "serve": "wrangler pages dev ./dist --compatibility-flags=nodejs_als",
-    "start": "vite --open --mode ssr",
-    "qwik": "qwik"
+    "qwik": "qwik",
+     "ssr": "vite build && vite build --ssr src/entry.ssr.tsx",
+  "start": "node dist/entry.ssr.js"
   },
   "devDependencies": {
     "@builder.io/qwik": "^1.14.1",

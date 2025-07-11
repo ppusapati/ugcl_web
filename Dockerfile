@@ -1,24 +1,21 @@
-# Base image
 FROM node:18-alpine
 
-# Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Install dependencies
-RUN npm install
+# Copy package files and install
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-# Copy source
+# Copy source and build
 COPY . .
+RUN pnpm ssr
 
-# Build your app
-RUN npm run build
-
-# Expose port (Cloud Run default is 8080)
-ENV PORT 8080
-
+# Set PORT for Cloud Run
+ENV PORT=8080
 EXPOSE 8080
-# Start the server
-CMD ["npm", "start"]
+
+# Start the SSR server
+CMD ["node", "dist/entry.ssr.js"]
