@@ -72,7 +72,7 @@ export default component$(() => {
 ]}
             data={nmr_vehicle.data}
             defaultLimit={10}
-            title="nmr_vehicle List"
+            title="NMR Vehicle Form"
             enableSearch
             enableSort
             serverPagination

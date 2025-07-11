@@ -74,8 +74,6 @@ export default component$(() => {
       });
       if (!res.ok) throw new Error('Failed to fetch: ' + res.statusText);
       const result = await res.json();
-      console.log('API raw:', result);
-
       const list = Array.isArray(result.data)
         ? result.data
         : result.data?.users        // { data: { users: [...] } }

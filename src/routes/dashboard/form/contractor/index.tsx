@@ -75,7 +75,7 @@ export default component$(() => {
 ]}
             data={Contractor.data}
             defaultLimit={10}
-            title="Contractor List"
+            title="Contractor Form"
             enableSearch
             enableSort
             serverPagination

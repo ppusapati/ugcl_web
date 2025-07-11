@@ -69,7 +69,7 @@ export default component$(() => {
 ]}
             data={DairySite.data}
             defaultLimit={10}
-            title="DairySite List"
+            title="DairySite Form"
             enableSearch
             enableSort
             serverPagination

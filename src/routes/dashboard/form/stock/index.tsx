@@ -79,7 +79,7 @@ export default component$(() => {
 ]}
             data={stock.data}
             defaultLimit={10}
-            title="stock List"
+            title="Stock Register"
             enableSearch
             enableSort
             serverPagination

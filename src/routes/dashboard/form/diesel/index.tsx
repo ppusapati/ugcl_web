@@ -77,7 +77,7 @@ export default component$(() => {
 ]}
             data={Diesel.data}
             defaultLimit={10}
-            title="Diesel List"
+            title="Diesel Form"
             enableSearch
             enableSort
             serverPagination

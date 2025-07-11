@@ -81,7 +81,7 @@ export default component$(() => {
 ]}
             data={DPRSite.data}
             defaultLimit={10}
-            title="DPRSite List"
+            title="DPRSite Form"
             enableSearch
             enableSort
             serverPagination

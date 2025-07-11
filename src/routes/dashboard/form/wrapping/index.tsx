@@ -73,7 +73,7 @@ export default component$(() => {
 ]}
             data={wrapping.data}
             defaultLimit={10}
-            title="wrapping List"
+            title="Wrapping Form"
             enableSearch
             enableSort
             serverPagination

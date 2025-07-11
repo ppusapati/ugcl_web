@@ -80,7 +80,7 @@ export default component$(() => {
 ]}
             data={vehicle_log.data}
             defaultLimit={10}
-            title="vehicle_log List"
+            title="Vehicle Log"
             enableSearch
             enableSort
             serverPagination

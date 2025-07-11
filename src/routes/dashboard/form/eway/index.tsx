@@ -88,7 +88,7 @@ export default component$(() => {
 ]}
             data={Eway.data}
             defaultLimit={10}
-            title="Eway List"
+            title="Eway Form"
             enableSearch
             enableSort
             serverPagination

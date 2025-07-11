@@ -75,7 +75,7 @@ export default component$(() => {
 ]}
             data={nmr.data}
             defaultLimit={10}
-            title="nmr List"
+            title="NMR Form"
             enableSearch
             enableSort
             serverPagination

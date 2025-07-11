@@ -75,7 +75,7 @@ export default component$(() => {
 ]}
             data={tasks.data}
             defaultLimit={10}
-            title="tasks List"
+            title="Tasks Form"
             enableSearch
             enableSort
             serverPagination

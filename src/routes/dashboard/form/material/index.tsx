@@ -74,7 +74,7 @@ export default component$(() => {
 ]}
             data={Material.data}
             defaultLimit={10}
-            title="Material List"
+            title="Material Form"
             enableSearch
             enableSort
             serverPagination

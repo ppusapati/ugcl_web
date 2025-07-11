@@ -74,7 +74,7 @@ export default component$(() => {
             ]}
             data={Paintings.data}
             defaultLimit={10}
-            title="Paintings List"
+            title="Paintings Form"
             enableSearch
             enableSort
             serverPagination

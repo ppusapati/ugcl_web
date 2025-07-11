@@ -74,7 +74,7 @@ export default component$(() => {
 ]}
             data={water.data}
             defaultLimit={10}
-            title="water List"
+            title="Water Usage Form"
             enableSearch
             enableSort
             serverPagination

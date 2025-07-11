@@ -74,7 +74,7 @@ export default component$(() => {
 ]}
             data={payment.data}
             defaultLimit={10}
-            title="payment List"
+            title="payment Form"
             enableSearch
             enableSort
             serverPagination
