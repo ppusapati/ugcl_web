@@ -7,7 +7,8 @@ import {
   useResource$,
   useTask$,
   useStyles$,
-  QRL
+  QRL,
+  useVisibleTask$
 } from '@builder.io/qwik';
 import { Pagination } from './Pagination';
 import { sortData } from '../utils/sortData';
@@ -59,7 +60,7 @@ export const P9ETable = component$(
 
     const sortOrder = useSignal('asc');
     const sortKey = useSignal(defaultKey);
-    const pageNo = useSignal(0);
+    const pageNo = useSignal(-1);
     const postPerPage = useSignal(props.defaultLimit ?? 100);
     const totalPosts = useSignal(props.data?.length ?? 0);
     const searchBy = useSignal(defaultKey);
@@ -74,12 +75,9 @@ export const P9ETable = component$(
     const enableSort = props.enableSort;
     const totalCount = props.totalCount;
     const data = props.data;
-console.log("props dfdfdfData: ", data)
     const finalData = useStore<{ items: T[] }>({
       items: Array.isArray(props.data) ? props.data : []
     });
-console.log("Final Data: ", finalData); 
-console.log('Final Data items:', [...finalData.items]); 
     const sortedData = $(() =>
       sortData({
         data: data,
@@ -104,7 +102,7 @@ console.log('Final Data items:', [...finalData.items]);
         prevSearch
       })
     );
-
+useVisibleTask$(() => { pageNo.value = 0; });
     // Use useResource$ for server pagination - this handles async operations properly
     const serverDataResource = useResource$(async ({ track }) => {
       if (!serverPagination || !onPageChangeQrl) {
@@ -124,22 +122,19 @@ console.log('Final Data items:', [...finalData.items]);
       }
     });
 
-    // Update finalData when server data changes
-    useTask$(async ({ track }) => {
-      if (!serverPagination) return;
+useTask$(async ({ track }) => {
+  if (!serverPagination) return;
 
-    console.log('✅ rows arrived', [...finalData.items]); 
-      
-      const resourceValuePromise = track(() => serverDataResource.value);
-      
-      if (resourceValuePromise) {
-        const resourceValue = await resourceValuePromise;
-        if (resourceValue) {
-          finalData.items = resourceValue;
-          totalCountSignal.value = totalCount ?? resourceValue.length;
-        }
-      }
-    });
+  const rowsPromise = track(() => serverDataResource.value);
+  if (!rowsPromise) return;            // startup – nothing to do yet
+
+  const rows = await rowsPromise;      // C. wait exactly ONCE per fetch
+
+  if (Array.isArray(rows)) {           // D. got the real array
+    finalData.items        = rows;     // table now has rows ✔
+    totalCountSignal.value = totalCount ?? rows.length;
+  }
+});
 
     // Handle loading state from resource
     const isLoading = serverPagination ? serverDataResource.loading : loading.value;

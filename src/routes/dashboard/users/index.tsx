@@ -63,21 +63,29 @@ export default component$(() => {
   });
 
   // Fetch users with bearer token
-  const fetchUsers = $(async (usersStore: typeof users, page = usersStore.page) => {
+  const fetchUsers = $(async (page = users.page, limit = users.limit) => {
     users.loading = true;
     users.error = '';
+    console.log('Fetching users:', { page, limit });
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/admin/users?page=${page+1}&limit=${users.limit}`, {
+      const res = await fetch(`${API_URL}/admin/users?page=${page + 1}&limit=${users.limit}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to fetch: ' + res.statusText);
       const result = await res.json();
-      users.data = result.data;
-      users.page = result.page -1;
-      users.total = result.total;
-      console.log("Total: ", users.total);
-      // totalCountSignal.value = result.total;
+      console.log('API raw:', result);
+
+      const list = Array.isArray(result.data)
+        ? result.data
+        : result.data?.users        // { data: { users: [...] } }
+        ?? result.users             // { users: [...] }
+        ?? [];
+      users.data = list;
+      users.page = (result.page ?? result.data?.page ?? 1) - 1;
+      users.total = result.total ?? result.data?.total ?? list.length;
+
+      return list;
     } catch (e: any) {
       users.error = e.message || 'Could not load users';
     } finally {
@@ -86,7 +94,7 @@ export default component$(() => {
   });
 
   useVisibleTask$(async () => {
-    fetchUsers(users);
+    await fetchUsers(users.page, users.limit);
   });
 
   // Form submit handler
@@ -106,7 +114,9 @@ export default component$(() => {
         throw new Error(err.message || 'Failed to register');
       }
       form.success = 'User added!';
-      await fetchUsers(users);
+
+      await fetchUsers(users.page, users.limit);
+      // await fetchUsers(users);
     } catch (e: any) {
       form.error = e.message;
       alert(e.message);
@@ -118,7 +128,7 @@ export default component$(() => {
     <div class="mx-auto container px-4">
       <div class="flex flex-col md:flex-row gap-8 items-start">
         <div class="flex-[2] min-w-0 dark:bg-dark-800 card-shadow bg-white">
-          
+
           <P9ETable
             header={[
               { key: 'name', label: 'Name' },
@@ -126,19 +136,18 @@ export default component$(() => {
               { key: 'phone', label: 'Phone' },
               { key: 'role', label: 'Role' },
             ]}
-            data={users.data}
+            data={[]}
             defaultLimit={10}
             title="Users List"
             enableSearch
             enableSort
-            serverPagination
+            serverPagination={true}
             totalCount={users.total}
-            onPageChange$={$(async (page:number, limit: number) => {
-              await fetchUsers(users, page); // fetch and update users store
-              return [...users.data];
-            })}
+
+            onPageChange$={$((p,l) => fetchUsers(p,l))}
+            
           />
-          
+
         </div>
 
         {/* Add User Form */}
