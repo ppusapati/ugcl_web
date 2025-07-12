@@ -11,21 +11,8 @@ const menuData = [
   { key: 'Users', label: 'User Profile', icon: 'i-heroicons-user', href: '/dashboard/users' },
   { key: 'report builder', label: 'Report Builder', icon: 'i-heroicons-chat-bubble-left-right', href: '/dashboard/report_builder' },
   { key: 'form builder', label: 'Form Builder', icon: 'i-heroicons-envelope', href: '/dashboard/form_builder' },
-  { key: 'contractor', label: 'Contractor', icon: 'i-heroicons-user-group', href: '/dashboard/form/contractor' },
-  { key: 'dairysite', label: 'Dairy Site', icon: 'i-formkit-filedoc', href: '/dashboard/form/dairysite' },
-  { key: 'diesel', label: 'Diesel', icon: 'i-formkit:filedoc', href: '/dashboard/form/diesel' },
-  { key: 'dprsite', label: 'DPR Site', icon: 'i-formkit:filedoc', href: '/dashboard/form/dprsite' },
-  { key: 'eway', label: 'Eway', icon: 'i-formkit:filedoc', href: '/dashboard/form/eway' },
-  {key: 'material', label: 'Material', icon: 'i-formkit:filedoc', href: '/dashboard/form/material' },
-  { key: 'nmr', label: 'NMR', icon: 'i-formkit:filedoc', href: '/dashboard/form/nmr' },
-  { key: 'nmr_vehicles', label: 'NMR Vehicles', icon: 'i-formkit:filedoc', href: '/dashboard/form/nmr_vehicles' },
-  { key: 'painting', label: 'Painting', icon: 'i-formkit:filedoc', href: '/dashboard/form/painting' },
-  { key: 'payment', label: 'Payment', icon: 'i-formkit:filedoc', href: '/dashboard/form/payment' },
-  { key: 'stock', label: 'Stock', icon: 'i-formkit:filedoc', href: '/dashboard/form/stock' },
-  { key: 'tasks', label: 'Tasks', icon: 'i-formkit:filedoc', href: '/dashboard/form/tasks' },
-  { key: 'vehicle_log', label: 'Vehicle Log', icon: 'i-formkit:filedoc', href: '/dashboard/form/vehicle_log' },
-  { key: 'water', label: 'Water', icon: 'i-formkit:filedoc', href: '/dashboard/form/water' },
-  { key: 'wrapping', label: 'Wrapping', icon: 'i-formkit:filedoc', href: '/dashboard/form/wrapping' },
+  { key: 'form', label: 'Forms', icon: 'i-formkit-filedoc', href: '/dashboard/form' },
+  
 ];
 
 export default component$((props: {

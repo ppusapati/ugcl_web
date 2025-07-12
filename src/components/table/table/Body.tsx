@@ -4,11 +4,16 @@ import { isImage } from '../utils/imageBool';
 function formatDate(val: string, formatStr = 'dd-MM-yyyy') {
   const d = new Date(val);
   if (isNaN(d.getTime())) return val;
-  console.log(formatStr)
-  // You can use date-fns for various formats, or a custom formatter for 'DD-MM-YYYY'
-  // return format(d, formatStr.replace('DD', 'dd').replace('YYYY', 'yyyy').replace('MM', 'MM'));
-}
 
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+
+  return formatStr
+    .replace('dd', day)
+    .replace('MM', month)
+    .replace('yyyy', String(year));
+}
 interface bodyProps {
   data: {
     [key: string]: string | number | null | undefined;
@@ -45,19 +50,40 @@ const computedPosts = useComputed$(() => {
         <tr key={cell.id || rowIdx}>
           {props.header.map((col, i) => {
             const val = cell[col.key];
-            if (isImage(val)) {
-              return (
-                <td key={i}>
-                  <img width={50} height={50} src={val as string} />
-                </td>
-              );
-            } else if (col.type === 'date' && val) {
-    // Default format if not specified
-    const displayFormat = col.format || 'dd-MM-yyyy';
-    return <td key={i}>{formatDate(val as string, displayFormat)}</td>;
-  } else {
-    return <td key={i}>{val == null ? '' : val.toString()}</td>;
-  }
+           if (isImage(val)) {
+  return (
+    <td key={i}>
+      {Array.isArray(val) ? (
+        val.map((src, index) =>
+          typeof src === 'string' ? (
+            console.log(src),
+            <img
+              key={index}
+              src={src}
+              width={50}
+              height={50}
+              alt="photo"
+              style={{ marginRight: '4px', borderRadius: '4px' }}
+            />
+          ) : null
+        )
+      ) : (
+        <img
+          src={val as string}
+          width={50}
+          height={50}
+          alt="photo"
+          style={{ borderRadius: '4px' }}
+        />
+      )}
+    </td>
+  );
+} else if (col.type === 'date' && val) {
+  const displayFormat = col.format || 'dd-MM-yyyy';
+  return <td key={i}>{formatDate(val as string, displayFormat)}</td>;
+} else {
+  return <td class='w-25' key={i}>{val == null ? '' : val.toString()}</td>;
+}
           })}
         </tr>
       ))}

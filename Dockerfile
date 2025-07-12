@@ -1,21 +1,24 @@
-FROM node:18-alpine
+FROM node:18-bullseye-slim AS build-env
 
+COPY . /app
 WORKDIR /app
 
-# Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# It is recommended that you only install production dependencies with
+# `npm i --omit=dev`. You may need to check which dependencies are missing
+RUN npm i
+RUN npm run build
 
-# Copy package files and install
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
 
-# Copy source and build
-COPY . .
-RUN pnpm ssr
+# A light-weight image for running the app
+FROM gcr.io/distroless/nodejs18-debian11
 
-# Set PORT for Cloud Run
-ENV PORT=8080
-EXPOSE 8080
+WORKDIR /app
+COPY --from=build-env /app/node_modules ./node_modules
 
-# Start the SSR server
-CMD ["node", "dist/entry.ssr.js"]
+# After running `npm run build` you will have 2 build folders.
+# - The `dist` folder will be created including all the static files.
+# - The `server` folder will be created including all node server files.
+COPY --from=build-env /app/server ./server
+COPY --from=build-env /app/dist ./dist
+
+CMD ["server/entry.cloud-run.js"]

@@ -23,7 +23,7 @@ export const Search = component$(( props: searchProps) => {
   })
 
   return (
-    <div class='search-cont'>
+    <div class='search-cont pr-6'>
       Search by
       <select onInput$={setSearchBy}>
         {props.headers.map((item, i) => (

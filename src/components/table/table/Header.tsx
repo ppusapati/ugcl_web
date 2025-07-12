@@ -15,8 +15,8 @@ interface headerProps {
 export const Header = component$((props: headerProps) => {
   useStylesScoped$(AppCSS);
   return (
-    <div class='table-top bg-white'>
-      <div class='table-header'>
+    <div class='table-top bg-primary p-4 text-white'>
+      <div class='table-header text-white'>
         <div class='header-title'>
           {props.title}
         </div>

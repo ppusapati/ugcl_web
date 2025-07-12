@@ -16,10 +16,13 @@ import { searchData } from '../utils/searchedData';
 import { TableHead } from './TableHead';
 import { Header } from './Header';
 import { TableBody } from './Body';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 interface TableProps<T = any> {
   header: {
-    key: keyof T;
+    key: keyof T & string;
     label: string;
     type?: string;
     format?: string;
@@ -30,6 +33,7 @@ interface TableProps<T = any> {
   defaultLimit?: number;
   serverPagination?: boolean;
   totalCount?: number;
+  selectedForm?: string;
   onPageChange$?: QRL<(page: number, limit: number) => Promise<T[]>>;
   enableSearch?: boolean;
   enableSort?: boolean;
@@ -102,19 +106,19 @@ export const P9ETable = component$(
         prevSearch
       })
     );
-useVisibleTask$(() => { pageNo.value = 0; });
+    useVisibleTask$(() => { pageNo.value = 0; });
     // Use useResource$ for server pagination - this handles async operations properly
     const serverDataResource = useResource$(async ({ track }) => {
-      if (!serverPagination || !onPageChangeQrl) {
-        return null;
-      }
-      
+      if (!serverPagination || !onPageChangeQrl) return null;
+
       const currentPage = track(() => pageNo.value);
       const currentLimit = track(() => postPerPage.value);
-      
+
+      // ✅ Track selectedForm to re-trigger fetch when it changes
+      const selectedForm = track(() => props.selectedForm); // even if unused, must be tracked
+      console.log(selectedForm);
       try {
         const result = await onPageChangeQrl(currentPage, currentLimit);
-        console.log('Page:', currentPage, 'Data:', result, 'Total:', totalCount);
         return result;
       } catch (error) {
         console.error('Error fetching page data:', error);
@@ -122,19 +126,20 @@ useVisibleTask$(() => { pageNo.value = 0; });
       }
     });
 
-useTask$(async ({ track }) => {
-  if (!serverPagination) return;
+    useTask$(async ({ track }) => {
+      if (!serverPagination) return;
 
-  const rowsPromise = track(() => serverDataResource.value);
-  if (!rowsPromise) return;            // startup – nothing to do yet
+      const rowsPromise = track(() => serverDataResource.value);
+      if (!rowsPromise) return;            // startup – nothing to do yet
 
-  const rows = await rowsPromise;      // C. wait exactly ONCE per fetch
+      const rows = await rowsPromise;      // C. wait exactly ONCE per fetch
 
-  if (Array.isArray(rows)) {           // D. got the real array
-    finalData.items        = rows;     // table now has rows ✔
-    totalCountSignal.value = totalCount ?? rows.length;
-  }
-});
+      if (Array.isArray(rows)) {           // D. got the real array
+        finalData.items = rows;     // table now has rows ✔
+        totalCountSignal.value = totalCount ?? rows.length;
+      }
+    });
+
 
     // Handle loading state from resource
     const isLoading = serverPagination ? serverDataResource.loading : loading.value;
@@ -173,8 +178,153 @@ useTask$(async ({ track }) => {
     const isEmpty = () =>
       !finalData.items || !Array.isArray(finalData.items) || finalData.items.length === 0;
 
+
+    const downloadCSV = $((
+      data: { [key: string]: string | number | null | undefined | any[] }[],
+      headers: { key: string; label: string }[]
+    ) => {
+      if (!data.length || !headers.length) {
+        alert('No data to export');
+        return;
+      }
+
+      const csvHeader = headers.map((h) => `"${h.label}"`).join(',');
+
+      const csvRows = data.map((row) =>
+        headers
+          .map((h) => {
+            const val = row[h.key];
+            if (Array.isArray(val)) {
+              return `"${val.join(';')}"`;
+            }
+            return `"${(val ?? '').toString().replace(/"/g, '""')}"`
+          })
+          .join(',')
+      );
+
+      const csvContent = [csvHeader, ...csvRows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${Date.now()}_table_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    const downloadExcel = $((data: any[], headers: { key: string; label: string }[]) => {
+  if (!data.length || !headers.length) {
+    alert('No data to export');
+    return;
+  }
+
+  const mappedData = data.map(row => {
+    const newRow: Record<string, any> = {};
+    headers.forEach(h => {
+      const val = row[h.key];
+      newRow[h.label] = Array.isArray(val) ? val.join(';') : val ?? '';
+    });
+    return newRow;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(mappedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  XLSX.writeFile(workbook, `${Date.now()}_table_export.xlsx`);
+});
+
+
+const downloadPDF = $((data: any[], headers: { key: string; label: string }[]) => {
+  if (!data.length || !headers.length) {
+    alert('No data to export');
+    return;
+  }
+
+  const doc = new jsPDF({ orientation: 'landscape' });
+
+  const tableHeaders = headers.map(h => h.label);
+
+  const tableRows = data.map(row =>
+    headers.map(h => {
+      let val = row[h.key];
+      if (Array.isArray(val)) {
+        val = val.join(', ');
+      }
+      if (val == null) return '';
+      return String(val).replace(/[\r\n]+/g, ' ').trim(); // ✅ Replace all line breaks with space
+    })
+  );
+
+  autoTable(doc, {
+    head: [tableHeaders],
+    body: tableRows,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      halign: 'left',
+      valign: 'middle',
+    },
+    headStyles: {
+      fillColor: [22, 160, 133],
+      textColor: 255,
+    },
+    theme: 'striped',
+    margin: { top: 20 },
+    didDrawPage: (data) => {
+      doc.setFontSize(10);
+      doc.text('Exported Table Report', data.settings.margin.left, 10);
+    }
+  });
+
+  doc.save(`${Date.now()}_table_export.pdf`);
+});
     return (
-      <div class="table-cont overflow-x-auto w-full">
+
+      <div class="table-cont overflow-x-auto w-full shadow-md rounded-lg">
+
+       <div class="flex justify-between items-center px-4 py-2 gap-2">
+  {props.header?.length > 0 && (
+    <div class="flex gap-2">
+      <button
+        onClick$={() =>
+          downloadCSV(
+            finalData.items,
+            props.header.map((h) => ({ key: String(h.key), label: h.label }))
+          )
+        }
+        class="px-3 py-1 bg-success-600 text-white rounded text-sm hover:bg-success-700"
+      >
+
+        CSV
+      </button>
+      <button
+        onClick$={() =>
+          downloadExcel(
+            finalData.items,
+            props.header.map((h) => ({ key: String(h.key), label: h.label }))
+          )
+        }
+        class="px-3 py-1 bg-primary-600 text-white rounded text-sm hover:bg-primary-700"
+      >
+        Excel
+      </button>
+      <button
+        onClick$={() =>
+          downloadPDF(
+            finalData.items,
+            props.header.map((h) => ({ key: String(h.key), label: h.label }))
+          )
+        }
+        class="px-3 py-1 bg-accent-600 text-white rounded text-sm hover:bg-accent-700"
+      >
+        PDF
+      </button>
+    </div>
+  )}
+</div>
+
         <Header
           headers={props.header.map((h) => ({
             key: String(h.key),
@@ -198,7 +348,7 @@ useTask$(async ({ track }) => {
           <div class="text-sm text-center text-red-500 my-4">No records found.</div>
         ) : (
           <>
-            <table class='min-w-max w-full'>
+            <table class='min-w-max m-5 w-full'>
               <TableHead
                 header={props.header.map((h) => ({
                   key: String(h.key),
