@@ -71,6 +71,7 @@ export default component$(() => {
   const fetchUsers = $(async (page = users.page, limit = users.limit) => {
     users.loading = true;
     users.error = '';
+    console.log(limit);
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/admin/users?page=${page + 1}&limit=${users.limit}`, {
