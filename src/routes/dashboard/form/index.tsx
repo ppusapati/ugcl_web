@@ -62,33 +62,36 @@ export default component$(() => {
       const firstRow = result.data[0] || {};
 
       // Auto-generate headers from first row keys
-      store.headers = Object.entries(firstRow).map(([key, value]) => ({
-        key,
-        label: key
-          .replace(/([A-Z])/g, ' $1')
-          .replace(/^./, (str) => str.toUpperCase())
-          .trim(),
-        type:
-          typeof value === 'string' && value.includes('T') && value.includes('Z')
-            ? 'date'
-            : undefined
-      }));
+     store.headers = Object.entries(firstRow)
+  .filter(([key]) => key.toLowerCase() !== 'id') // ⛔ Exclude ID
+  .map(([key, value]) => ({
+    key,
+    label: key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim(),
+    type:
+      typeof value === 'string' && value.includes('T') && value.includes('Z')
+        ? 'date'
+        : undefined
+  }));
 
       // Preprocess data
       store.data = result.data.map((row: any) => {
-        const newRow: Record<string, any> = {};
-        for (const [key, value] of Object.entries(row)) {
-          if (Array.isArray(value)) {
-            newRow[key] = value;
-          } else if (typeof value === 'string' && value.includes('T') && value.includes('Z')) {
-            const date = new Date(value);
-            newRow[key] = isNaN(date.getTime()) ? value : date.toISOString();
-          } else {
-            newRow[key] = value;
-          }
-        }
-        return newRow;
-      });
+  const newRow: Record<string, any> = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (key.toLowerCase() === 'id') continue; // ⛔ Skip ID field
+    if (Array.isArray(value)) {
+      newRow[key] = value;
+    } else if (typeof value === 'string' && value.includes('T') && value.includes('Z')) {
+      const date = new Date(value);
+      newRow[key] = isNaN(date.getTime()) ? value : date.toISOString();
+    } else {
+      newRow[key] = value;
+    }
+  }
+  return newRow;
+});
 
       // Force table refresh if page = 0
       if (store.page === 0) {

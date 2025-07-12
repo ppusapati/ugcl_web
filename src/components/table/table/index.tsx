@@ -48,6 +48,7 @@ export const P9ETable = component$(
       border-collapse: collapse;
       width: 100%;
       overflow-x-auto; w-full;
+      table-layout: fixed;
     }
     td {
       padding: 1rem;
@@ -115,8 +116,7 @@ export const P9ETable = component$(
       const currentLimit = track(() => postPerPage.value);
 
       // ✅ Track selectedForm to re-trigger fetch when it changes
-      const selectedForm = track(() => props.selectedForm); // even if unused, must be tracked
-      console.log(selectedForm);
+      track(() => props.selectedForm); // even if unused, must be tracked
       try {
         const result = await onPageChangeQrl(currentPage, currentLimit);
         return result;
@@ -280,6 +280,25 @@ const downloadPDF = $((data: any[], headers: { key: string; label: string }[]) =
 
   doc.save(`${Date.now()}_table_export.pdf`);
 });
+const colWidths = useStore<Record<string, string>>({});
+const onResizeStart$ = $((e: MouseEvent, key: string) => {
+  const startX = e.clientX;
+  const target = e.target as HTMLElement;
+const startWidth = target.parentElement?.offsetWidth || 0;
+
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    const newWidth = startWidth + (moveEvent.clientX - startX);
+    colWidths[key] = `${newWidth}px`;
+  };
+
+  const onMouseUp = () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  };
+
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+});
     return (
 
       <div class="table-cont overflow-x-auto w-full shadow-md rounded-lg">
@@ -349,14 +368,16 @@ const downloadPDF = $((data: any[], headers: { key: string; label: string }[]) =
         ) : (
           <>
             <table class='min-w-max m-5 w-full'>
-              <TableHead
-                header={props.header.map((h) => ({
-                  key: String(h.key),
-                  label: h.label
-                }))}
-                sortOrder={sortOrder}
-                sortKey={sortKey}
-              />
+            <TableHead
+  header={props.header.map((h) => ({
+    key: String(h.key),
+    label: h.label
+  }))}
+  sortOrder={sortOrder}
+  sortKey={sortKey}
+  colWidths={colWidths}
+  onResizeStart$={onResizeStart$}
+/>
               <TableBody
                 data={finalData.items}
                 pageNo={pageNo}

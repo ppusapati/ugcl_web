@@ -1,4 +1,9 @@
-import { type Signal, component$, useStylesScoped$ } from '@builder.io/qwik';
+import {
+  type Signal,
+  type QRL,
+  component$,
+  useStylesScoped$,
+} from '@builder.io/qwik';
 import { SortButton } from '../SortButton';
 
 interface HeaderProps {
@@ -8,48 +13,70 @@ interface HeaderProps {
   }[];
   sortOrder: Signal<string>;
   sortKey: Signal<string>;
+  colWidths: Record<string, string>;
+  onResizeStart$: QRL<(e: MouseEvent, key: string) => void>;
 }
-
-type cellType = {
-  [key: string]: string | number | null | undefined;
-};
 
 export const TableHead = component$((props: HeaderProps) => {
   useStylesScoped$(AppCSS);
+
   return (
     <thead>
       <tr>
-        {props.header.map((cell: cellType, i) => {
-          // Safely get keys and ensure we have the correct indices
-          const keys = Object.keys(cell);
-          const key1 = keys[0];
-          const key2 = keys[1];
-
-          // Check if both keys exist before accessing them
-          if (key1 && key2) {
-            return (
-              <td key={i}>
-                {cell[key2] !== undefined ? cell[key2] : ''}
-                <SortButton
-                  cellKey={cell[key1] !== undefined ? cell[key1] : ''}
-                  sortOrder={props.sortOrder}
-                  sortKey={props.sortKey}
-                />
-              </td>
-            );
-          } else {
-            // Handle cases where keys are not found
-            return <td key={i}></td>;
-          }
-        })}
+        {props.header.map(({ key, label }) => (
+          <th
+            key={key}
+            style={{ width: props.colWidths[key] || 'auto' }}
+            class="th-cell"
+          >
+            <div class="cell-content">
+              <span class="truncate">{label}</span>
+              <SortButton cellKey={key} sortOrder={props.sortOrder} sortKey={props.sortKey} />
+            </div>
+            <div class="resizer" onMouseDown$={(e) => props.onResizeStart$(e, key)} />
+          </th>
+        ))}
       </tr>
     </thead>
   );
 });
 
 export const AppCSS = `
-  td {
-    position: relative;
-    color: #64758b;
-  }
+  .th-cell {
+  position: relative;
+  color: #334155;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cell-content span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1; /* allow label to grow and push sort icon */
+}
+
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 10;
+}
+
 `;

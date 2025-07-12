@@ -1,24 +1,29 @@
+# Use Node.js with Debian slim as base image for building
 FROM node:18-bullseye-slim AS build-env
 
+# Install pnpm globally
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy app source
 COPY . /app
 WORKDIR /app
 
-# It is recommended that you only install production dependencies with
-# `npm i --omit=dev`. You may need to check which dependencies are missing
-RUN npm i
-RUN npm run build
+# Install dependencies with pnpm
+RUN pnpm install --frozen-lockfile
+
+# Build the project
+RUN pnpm run build
 
 
-# A light-weight image for running the app
+# Use a lightweight distroless image for production
 FROM gcr.io/distroless/nodejs18-debian11
 
 WORKDIR /app
-COPY --from=build-env /app/node_modules ./node_modules
 
-# After running `npm run build` you will have 2 build folders.
-# - The `dist` folder will be created including all the static files.
-# - The `server` folder will be created including all node server files.
+# Copy dependencies and built assets from build stage
+COPY --from=build-env /app/node_modules ./node_modules
 COPY --from=build-env /app/server ./server
 COPY --from=build-env /app/dist ./dist
 
+# Start the server
 CMD ["server/entry.cloud-run.js"]

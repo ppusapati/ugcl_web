@@ -26,7 +26,6 @@ export const SortButton = component$((props: typeProps) => {
 
 export const AppCSS = `
   svg {
-    position: absolute;
     top: 17%;
     margin-left: 0.4rem;
     cursor: pointer;
@@ -36,4 +35,9 @@ export const AppCSS = `
   svg:hover {
     background: #f1f5f9;
   }
+    .sort-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
 `;
