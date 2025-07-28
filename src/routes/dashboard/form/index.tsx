@@ -6,8 +6,8 @@ import {
 import { DualListbox } from '~/components/dual_list';
 import { P9ETable } from '~/components/table';
 
-const API_URL = 'http://localhost:8080/api/v1';
-
+// const API_URL = 'http://localhost:8080/api/v1';
+const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
 const formLabelMap: Record<string, string> = {
   dairysite: 'Dairy Site',
   diesel: 'Diesel',

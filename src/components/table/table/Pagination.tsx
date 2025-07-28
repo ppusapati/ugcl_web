@@ -4,7 +4,8 @@ interface pageProps {
   pageNo: Signal<number>,
   postPerPage: Signal<number>,
   totalPosts: Signal<number>,
-  onChange$?: (page: number, limit: number) => void;
+  // Remove the onChange$ prop entirely
+  // onChange$?: (page: number, limit: number) => void;
 }
 
 export const Pagination = component$((props: pageProps) => {
@@ -18,40 +19,40 @@ export const Pagination = component$((props: pageProps) => {
     const newLimit = +e.target.value;
     props.postPerPage.value = newLimit;
     props.pageNo.value = 0;
-    props.onChange$ && props.onChange$(0, newLimit);
+    // No onChange call - parent will react to signal changes
   });
 
   const changePageNo = $((e: any) => {
-    const newPage = +e.target.value;
+    const newPage = +e.target.value - 1; // Convert from 1-based to 0-based
     props.pageNo.value = newPage;
-    props.onChange$ && props.onChange$(newPage, props.postPerPage.value);
+    // No onChange call - parent will react to signal changes
   });
 
   const decPage = $(() => {
     if (props.pageNo.value !== 0) {
       props.pageNo.value--;
-      props.onChange$ && props.onChange$(props.pageNo.value, props.postPerPage.value);
+      // No onChange call - parent will react to signal changes
     }
   });
 
   const incPage = $(() => {
     if (props.pageNo.value < totalPage.value - 1) {
       props.pageNo.value++;
-      props.onChange$ && props.onChange$(props.pageNo.value, props.postPerPage.value);
+      // No onChange call - parent will react to signal changes
     }
   });
 
   const setFirstPage = $(() => {
     if (props.pageNo.value !== 0) {
       props.pageNo.value = 0;
-      props.onChange$ && props.onChange$(0, props.postPerPage.value);
+      // No onChange call - parent will react to signal changes
     }
   });
 
   const setLastPage = $(() => {
     if (props.pageNo.value !== totalPage.value - 1) {
       props.pageNo.value = totalPage.value - 1;
-      props.onChange$ && props.onChange$(props.pageNo.value, props.postPerPage.value);
+      // No onChange call - parent will react to signal changes
     }
   });
 
@@ -66,26 +67,24 @@ export const Pagination = component$((props: pageProps) => {
           <option>40</option>
           <option>50</option>
           <option>100</option>
-            <option>150</option>
-              <option>200</option>
-                <option>500</option>
-                  <option>1000</option>
+          <option>150</option>
+          <option>200</option>
+          <option>500</option>
+          <option>1000</option>
         </select>
       </div>
       <div>
         <div class='select-page'>
-          Page <input onInput$={changePageNo} value={props.pageNo.value} type='number' min={0} max={totalPage.value-1} /> of {totalPage.value}
+          Page <input onInput$={changePageNo} value={props.pageNo.value + 1} type='number' min={1} max={totalPage.value} /> of {totalPage.value}
         </div>
       </div>
       <div class='btn-cont'>
         <button disabled={props.pageNo.value === 0} onClick$={setFirstPage}>
-          {/* ...SVG... */}
           &lt;&lt;
         </button>
         <button onClick$={decPage}>&lt;</button>
         <button onClick$={incPage}>&gt;</button>
         <button disabled={props.pageNo.value === totalPage.value-1} onClick$={setLastPage}>
-          {/* ...SVG... */}
           &gt;&gt;
         </button>
       </div>

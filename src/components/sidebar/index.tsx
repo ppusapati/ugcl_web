@@ -55,6 +55,7 @@ export default component$((props: {
         state.userRole = user.role; // adapt if your user object is nested
       }
     } catch (e) {
+      console.error('Error reading user role from localStorage:', e);
       state.userRole = '';
     }
   });

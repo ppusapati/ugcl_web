@@ -42,11 +42,9 @@ export function extractImageUrls(val: any): string[] {
 
   // Base64-encoded JSON array string
   if (typeof val === 'string' && /^[A-Za-z0-9+/=]+$/.test(val) && val.length % 4 === 0) {
-    try {
       const decoded = atob(val);
       const arr = JSON.parse(decoded);
       if (Array.isArray(arr)) return arr.filter(isUrl);
-    } catch { }
   }
 
   // Plain string image URL

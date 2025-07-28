@@ -14,7 +14,6 @@ import { Pagination } from './Pagination';
 import { sortData } from '../utils/sortData';
 import { searchData } from '../utils/searchedData';
 import { TableHead } from './TableHead';
-import { Header } from './Header';
 import { TableBody } from './Body';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -588,9 +587,10 @@ export const P9ETable = component$(
                 pageNo={pageNo}
                 postPerPage={postPerPage}
                 totalPosts={serverPagination ? totalCountSignal : totalPosts}
-                onChange$={(page, limit) => {
-                  if (props.onPageChange$) props.onPageChange$(page, limit);
-                }}
+                // onPageChange$ = {props.onPageChange$(page, limit)}
+                // onChange$={(page, limit) => {
+                //   if (props.onPageChange$) props.onPageChange$(page, limit);
+                // }}
               />
             </div>
 
