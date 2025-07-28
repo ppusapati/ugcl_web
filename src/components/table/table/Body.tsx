@@ -1,5 +1,5 @@
 import { type Signal, component$, useComputed$, useStylesScoped$ } from '@builder.io/qwik';
-import { isImage } from '../utils/imageBool';
+import { extractImageUrls, isImage } from '../utils/imageBool';
 
 function formatDate(val: string, formatStr = 'dd-MM-yyyy') {
   const d = new Date(val);
@@ -51,33 +51,21 @@ const computedPosts = useComputed$(() => {
           {props.header.map((col, i) => {
             const val = cell[col.key];
            if (isImage(val)) {
-  return (
-    <td key={i}>
-      {Array.isArray(val) ? (
-        val.map((src, index) =>
-          typeof src === 'string' ? (
-            console.log(src),
-            <img
-              key={index}
-              src={src}
-              width={50}
-              height={50}
-              alt="photo"
-              style={{ marginRight: '4px', borderRadius: '4px' }}
-            />
-          ) : null
-        )
-      ) : (
-        <img
-          src={val as string}
-          width={50}
-          height={50}
-          alt="photo"
-          style={{ borderRadius: '4px' }}
-        />
-      )}
-    </td>
-  );
+             const urls = extractImageUrls(val);
+   return (
+      <td key={i}>
+        {urls.map((src, index) =>
+          <img
+            key={index}
+            src={src}
+            width={50}
+            height={50}
+            alt="photo"
+            style={{ marginRight: '4px', borderRadius: '4px' }}
+          />
+        )}
+      </td>
+    );
 } else if (col.type === 'date' && val) {
   const displayFormat = col.format || 'dd-MM-yyyy';
   return <td key={i}>{formatDate(val as string, displayFormat)}</td>;

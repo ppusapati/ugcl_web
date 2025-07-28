@@ -10,8 +10,8 @@ import { InitialValues } from '@modular-forms/qwik';
 import { DynamicForm, FormField } from '~/components/form_generator';
 import { P9ETable } from '~/components/table';
 
-const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
-
+// const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
+const API_URL = 'http://localhost:8080/api/v1'; // Use local API for development
 type UserForm = {
   name: string;
   phone: string;
@@ -75,7 +75,10 @@ export default component$(() => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/admin/users?page=${page + 1}&limit=${users.limit}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+       headers: {
+  Authorization: `Bearer ${token}`,
+  'x-api-key': '87339ea3-1add-4689-ae57-3128ebd03c4f'
+}
       });
       if (!res.ok) throw new Error('Failed to fetch: ' + res.statusText);
 

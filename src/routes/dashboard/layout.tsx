@@ -24,7 +24,7 @@ export default component$(() => {
   if (!state.user) return null; 
 
   return (
-    <div class="flex h-screen bg-light-100 dark:bg-dark-950">
+    <div class="flex min-h-screen bg-gray-50 dark:bg-dark-950">
       {/* Sidebar */}
       <Sidebar collapsed={state.sidebarCollapsed}
         onToggle$={() => state.sidebarCollapsed = !state.sidebarCollapsed} />

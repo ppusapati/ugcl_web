@@ -1,10 +1,10 @@
- 
 import { Signal, component$, useStylesScoped$, $, useComputed$ } from '@builder.io/qwik';
 
 interface pageProps {
   pageNo: Signal<number>,
   postPerPage: Signal<number>,
-  totalPosts: Signal<number>
+  totalPosts: Signal<number>,
+  onChange$?: (page: number, limit: number) => void;
 }
 
 export const Pagination = component$((props: pageProps) => {
@@ -15,68 +15,78 @@ export const Pagination = component$((props: pageProps) => {
   });
 
   const changePosts = $((e: any) => {
-    props.postPerPage.value = e.target.value as number;
-  })
+    const newLimit = +e.target.value;
+    props.postPerPage.value = newLimit;
+    props.pageNo.value = 0;
+    props.onChange$ && props.onChange$(0, newLimit);
+  });
 
   const changePageNo = $((e: any) => {
-    props.pageNo.value = e.target.value as number;
-  })
+    const newPage = +e.target.value;
+    props.pageNo.value = newPage;
+    props.onChange$ && props.onChange$(newPage, props.postPerPage.value);
+  });
 
   const decPage = $(() => {
-    if (props.pageNo.value !== 0) props.pageNo.value--;
-  })
+    if (props.pageNo.value !== 0) {
+      props.pageNo.value--;
+      props.onChange$ && props.onChange$(props.pageNo.value, props.postPerPage.value);
+    }
+  });
 
   const incPage = $(() => {
-    if (props.pageNo.value < totalPage.value) {
-  props.pageNo.value++;
-}
-  })
+    if (props.pageNo.value < totalPage.value - 1) {
+      props.pageNo.value++;
+      props.onChange$ && props.onChange$(props.pageNo.value, props.postPerPage.value);
+    }
+  });
 
   const setFirstPage = $(() => {
-    if(props.pageNo.value !== 0) props.pageNo.value = 0;
-  })
+    if (props.pageNo.value !== 0) {
+      props.pageNo.value = 0;
+      props.onChange$ && props.onChange$(0, props.postPerPage.value);
+    }
+  });
 
   const setLastPage = $(() => {
-    if(props.pageNo.value !== totalPage.value) props.pageNo.value = totalPage.value-1;
-  })
+    if (props.pageNo.value !== totalPage.value - 1) {
+      props.pageNo.value = totalPage.value - 1;
+      props.onChange$ && props.onChange$(props.pageNo.value, props.postPerPage.value);
+    }
+  });
 
   return (
     <div class='page-cont'>
-
       <div class='post-select'>
-        <div>Rows per page </div>
-        <select onInput$={changePosts}>
+        <div>Rows per page</div>
+        <select onInput$={changePosts} value={props.postPerPage.value}>
           <option>10</option>
           <option>20</option>
           <option>30</option>
           <option>40</option>
           <option>50</option>
           <option>100</option>
-          <option>200</option>
-          <option>500</option>
-          <option>1000</option>
-          <option>2000</option>
-          <option>5000</option>
-          <option>10000</option>
+            <option>150</option>
+              <option>200</option>
+                <option>500</option>
+                  <option>1000</option>
         </select>
       </div>
-
       <div>
-        <div class='select-page'>Page <input onInput$={changePageNo} value={props.pageNo.value} type='number' min={0} max={totalPage.value-1} /> of {totalPage.value}</div>
+        <div class='select-page'>
+          Page <input onInput$={changePageNo} value={props.pageNo.value} type='number' min={0} max={totalPage.value-1} /> of {totalPage.value}
+        </div>
       </div>
-
       <div class='btn-cont'>
         <button disabled={props.pageNo.value === 0} onClick$={setFirstPage}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+          {/* ...SVG... */}
+          &lt;&lt;
         </button>
-        <button onClick$={decPage}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <button onClick$={incPage}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
-        <button disabled={props.pageNo.value === totalPage.value} onClick$={setLastPage}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+        <button onClick$={decPage}>&lt;</button>
+        <button onClick$={incPage}>&gt;</button>
+        <button disabled={props.pageNo.value === totalPage.value-1} onClick$={setLastPage}>
+          {/* ...SVG... */}
+          &gt;&gt;
         </button>
       </div>
     </div>
@@ -84,61 +94,15 @@ export const Pagination = component$((props: pageProps) => {
 });
 
 export const AppCSS = `
-  .post-select {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  select {
-    outline: none;
-    width: 50px;
-    height: 30px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-  }
-  select:focus {
-    outline: 2px solid #19b6f6;
-  }
-  .select-page>input {
-    outline: none;
-    border: 1px solid #e2e8f0;
-    width: 50px;
-    height: 30px;
-    border-radius: 8px;
-    font-size: 14px;
-  }
-  .select-page>input:focus {
-    outline: 2px solid #19b6f6;
-  }
-  .btn-cont>button:focus {
-    outline: 2px solid #19b6f6;
-  }
-  .page-cont {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 40px;
-  }
-  .btn-cont {
-    height: 80px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  button {
-    height: fit-content;
-    background: transparent;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  button:disabled {
-    cursor: not-allowed;
-  }
-  button:hover {
-    background: #f8f9fb;
-  }
+  .post-select { display: flex; align-items: center; gap: 10px; }
+  select { outline: none; width: 50px; height: 30px; border: 1px solid #e2e8f0; border-radius: 8px; }
+  select:focus { outline: 2px solid #19b6f6; }
+  .select-page>input { outline: none; border: 1px solid #e2e8f0; width: 50px; height: 30px; border-radius: 8px; font-size: 14px; }
+  .select-page>input:focus { outline: 2px solid #19b6f6; }
+  .btn-cont>button:focus { outline: 2px solid #19b6f6; }
+  .page-cont { display: flex; justify-content: flex-end; align-items: center; gap: 40px; }
+  .btn-cont { height: 80px; display: flex; align-items: center; gap: 10px; }
+  button { height: fit-content; background: transparent; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
+  button:disabled { cursor: not-allowed; }
+  button:hover { background: #f8f9fb; }
 `;

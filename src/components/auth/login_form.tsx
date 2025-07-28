@@ -42,7 +42,8 @@ export const LoginForm = component$(() => {
             state.passwordError = '';
         }
     });
-
+const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
+// const API_URL = 'http://localhost:8080/api/v1'; // Use local API for development
     const handleSubmit = $(async (e: Event) => {
         e.preventDefault();
         state.touched = true;
@@ -52,7 +53,7 @@ export const LoginForm = component$(() => {
         }
         // Proceed with form submission (API call, etc.)
         try {
-            const resp = await fetch('https://ugcl-429789556411.asia-south1.run.app/api/v1/login', {
+            const resp = await fetch(`${API_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
