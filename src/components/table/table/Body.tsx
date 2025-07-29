@@ -57,7 +57,7 @@ const computedPosts = useComputed$(() => {
         {urls.map((src, index) =>
           <img
             key={index}
-            src={src}
+            src={typeof src === 'string' ? src.trim() : ''}
             width={50}
             height={50}
             alt="photo"

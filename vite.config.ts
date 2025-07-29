@@ -48,8 +48,12 @@ export default defineConfig(({ command, mode }): UserConfig => {
     //     : undefined,
 
     server: {
+  proxy: {
+    '/api': 'http://localhost:8080/',
+  },
       headers: {
         // Don't cache the server response in dev mode
+        'x-api-key': '87339ea3-1add-4689-ae57-3128ebd03c4f',
         "Cache-Control": "public, max-age=0",
       },
     },
