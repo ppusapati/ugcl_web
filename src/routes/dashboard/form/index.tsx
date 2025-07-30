@@ -112,8 +112,8 @@ export default component$(() => {
       params.append('fields', store.visibleColumns.join(','));
       if (store.filter.fromDate) params.append('fromDate', store.filter.fromDate);
       if (store.filter.toDate) params.append('toDate', store.filter.toDate);
-      if (store.filter.site) params.append('site', store.filter.site);
-      if (store.filter.contractor) params.append('contractor', store.filter.contractor);
+      if (store.filter.site) params.append('name_of_site', store.filter.site);
+      if (store.filter.contractor) params.append('name_of_contractor', store.filter.contractor);
 
       const res = await fetch(
         `${API_URL}/admin/${store.selectedForm}?${params.toString()}`,
