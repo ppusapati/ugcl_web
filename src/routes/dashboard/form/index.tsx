@@ -3,7 +3,6 @@ import {
   useStore,
   $,
 } from '@builder.io/qwik';
-import { DualListbox } from '~/components/dual_list';
 import { P9ETable } from '~/components/table';
 
 // const API_URL = 'http://localhost:8080/api/v1';
@@ -324,19 +323,26 @@ export default component$(() => {
                 </div>
               </div>
               <div class="p-2">
-                <DualListbox
-                  allColumns={formState.allColumns}
-                  selected={formState.visibleColumns}
-                  fixedHeight="380px"
-                  onChange$={$((next) => {
-                    formState.visibleColumns = next;
-                    formState.headers = formState.visibleColumns
-                      .map(key => formState.allColumns.find(c => c.key === key)!)
-                      .filter(Boolean);
-                    formState.isDirty = true;
-                    formState.data = [];
-                  })}
-                />
+                 <div class="grid grid-cols-3 gap-2">
+    {formState.allColumns.map((col) => (
+      <label key={col.key} class="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+        <input
+          type="checkbox"
+          checked={formState.visibleColumns.includes(col.key)}
+          onChange$={(e) => {
+            const checked = (e.target as HTMLInputElement).checked;
+            if (checked) {
+              formState.visibleColumns = [...formState.visibleColumns, col.key];
+            } else {
+              formState.visibleColumns = formState.visibleColumns.filter(k => k !== col.key);
+            }
+          }}
+          class="rounded border-gray-300"
+        />
+        <span class="text-sm">{col.label}</span>
+      </label>
+    ))}
+  </div>
               </div>
             </div>
 
