@@ -10,8 +10,8 @@ import { InitialValues } from '@modular-forms/qwik';
 import { DynamicForm, FormField } from '~/components/form_generator';
 import { P9ETable } from '~/components/table';
 
-// const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
-const API_URL = 'http://localhost:8080/api/v1'; // Use local API for development
+const API_URL = 'https://ugcl-429789556411.asia-south1.run.app/api/v1';
+// const API_URL = 'http://localhost:8080/api/v1'; // Use local API for development
 type UserForm = {
   name: string;
   phone: string;
