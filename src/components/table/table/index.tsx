@@ -35,9 +35,51 @@ interface TableProps<T = any> {
   totalCount?: number;
   selectedForm?: string;
   onPageChange$?: QRL<(page: number, limit: number) => Promise<T[]>>;
+  onExportData$?: QRL<() => Promise<T[]>>; // New prop for fetching all data
   enableSearch?: boolean;
   enableSort?: boolean;
 }
+
+// Utility function to format dates for display
+const formatDateForDisplay = (dateValue: any): string => {
+  if (!dateValue) return '';
+  
+  try {
+    // Check if it's already in a readable format
+    if (typeof dateValue === 'string' && !dateValue.includes('T')) {
+      return dateValue;
+    }
+    
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return dateValue.toString();
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    console.log(error);
+    return dateValue.toString();
+  }
+};
+
+// Utility function to check if a value looks like a date for display
+const isDateFieldForDisplay = (key: string, value: any): boolean => {
+  if (!value) return false;
+  
+  // Check if field name suggests it's a date
+  const dateKeywords = ['date', 'time', 'created', 'updated', 'modified'];
+  const isDateKey = dateKeywords.some(keyword => 
+    key.toLowerCase().includes(keyword)
+  );
+  
+  // Check if value looks like an ISO date string
+  const isISOString = typeof value === 'string' && 
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value);
+  
+  return isDateKey && isISOString;
+};
 
 export const pickPdfFormat = (numColumns: number) => {
   if (numColumns <= 4) return 'a5';
@@ -47,11 +89,53 @@ export const pickPdfFormat = (numColumns: number) => {
   return 'a1';
 };
 
+// Utility function to format dates
+const formatDate = (dateValue: any): string => {
+  if (!dateValue) return '';
+  
+  try {
+    // Check if it's already in a readable format
+    if (typeof dateValue === 'string' && !dateValue.includes('T')) {
+      return dateValue;
+    }
+    
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return dateValue.toString();
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    console.log(error);
+    return dateValue.toString();
+  }
+};
+
+// Utility function to check if a value looks like a date
+const isDateField = (key: string, value: any): boolean => {
+  if (!value) return false;
+  
+  // Check if field name suggests it's a date
+  const dateKeywords = ['date', 'time', 'created', 'updated', 'modified'];
+  const isDateKey = dateKeywords.some(keyword => 
+    key.toLowerCase().includes(keyword)
+  );
+  
+  // Check if value looks like an ISO date string
+  const isISOString = typeof value === 'string' && 
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value);
+  
+  return isDateKey && isISOString;
+};
+
 export const P9ETable = component$(
   <T extends { [key: string]: string | number | null | undefined }>(
     props: TableProps<T>
   ) => {
     const onPageChangeQrl = props.onPageChange$;
+    const onExportDataQrl = props.onExportData$;
     
     useStyles$(`
       .professional-table {
@@ -104,6 +188,12 @@ export const P9ETable = component$(
       
       .export-btn:active {
         transform: translateY(0);
+      }
+      
+      .export-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
       }
       
       .csv-btn {
@@ -258,6 +348,21 @@ export const P9ETable = component$(
         color: #9ca3af;
         font-size: 18px;
       }
+
+      .export-loading {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      
+      .export-spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
     `);
 
     useStylesScoped$(AppCSS);
@@ -276,6 +381,7 @@ export const P9ETable = component$(
     const prevSearch = useSignal(false);
     const loading = useSignal(false);
     const totalCountSignal = useSignal(props.totalCount ?? 0);
+    const exportLoading = useSignal(false);
 
     const serverPagination = props.serverPagination;
     const enableSearch = props.enableSearch;
@@ -339,7 +445,17 @@ export const P9ETable = component$(
       const rows = await rowsPromise;
 
       if (Array.isArray(rows)) {
-        finalData.items = rows;
+        // Format dates for display in server pagination data
+        finalData.items = rows.map((row) => {
+          const formattedRow = { ...row };
+          Object.keys(formattedRow).forEach((key) => {
+            const value = formattedRow[key as keyof T];
+            if (isDateFieldForDisplay(key, value)) {
+              (formattedRow as any)[key] = formatDateForDisplay(value);
+            }
+          });
+          return formattedRow;
+        });
         totalCountSignal.value = totalCount ?? rows.length;
       }
     });
@@ -360,13 +476,27 @@ export const P9ETable = component$(
       loading.value = true;
 
       try {
+        let processedData: T[];
+        
         if (enableSearch && searchInp.value !== '') {
-          finalData.items = await searchedData();
+          processedData = await searchedData();
         } else if (enableSort) {
-          finalData.items = (await sortedData()) as T[];
+          processedData = (await sortedData()) as T[];
         } else {
-          finalData.items = data;
+          processedData = data;
         }
+
+        // Format dates for display in the table
+        finalData.items = processedData.map((row) => {
+          const formattedRow = { ...row };
+          Object.keys(formattedRow).forEach((key) => {
+            const value = formattedRow[key as keyof T];
+            if (isDateFieldForDisplay(key, value)) {
+              (formattedRow as any)[key] = formatDateForDisplay(value);
+            }
+          });
+          return formattedRow;
+        });
 
         totalPosts.value = finalData.items?.length ?? 0;
       } catch (error) {
@@ -379,115 +509,187 @@ export const P9ETable = component$(
     const isEmpty = () =>
       !finalData.items || !Array.isArray(finalData.items) || finalData.items.length === 0;
 
-    const downloadCSV = $((
-      data: { [key: string]: string | number | null | undefined | any[] }[],
-      headers: { key: string; label: string }[]
-    ) => {
-      if (!data.length || !headers.length) {
-        alert('No data to export');
-        return;
+    // Function to get all data for export
+    const getAllDataForExport = $(async (): Promise<T[]> => {
+      if (onExportDataQrl) {
+        // Use the export callback to get all data
+        return await onExportDataQrl();
+      } else {
+        // Fallback to current data if no export callback provided
+        return finalData.items;
       }
+    });
 
-      const csvHeader = headers.map((h) => `"${h.label}"`).join(',');
-      const csvRows = data.map((row) =>
-        headers
-          .map((h) => {
-            const val = row[h.key];
-            if (Array.isArray(val)) {
-              return `"${val.join(';')}"`;
+    // Process data for export with proper formatting
+    const processDataForExport = $(
+      (data: T[], headers: { key: string; label: string }[]) => {
+        return data.map((row) => {
+          const processedRow: Record<string, any> = {};
+          
+          // Process in the order of headers to maintain column order
+          headers.forEach((header) => {
+            let value = row[header.key as keyof T];
+            
+            // Format dates
+            if (isDateField(header.key, value)) {
+              value = formatDate(value) as any;
             }
-            return `"${(val ?? '').toString().replace(/"/g, '""')}"`
-          })
-          .join(',')
-      );
-
-      const csvContent = [csvHeader, ...csvRows].join('\r\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${Date.now()}_table_export.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    const downloadExcel = $((data: any[], headers: { key: string; label: string }[]) => {
-      if (!data.length || !headers.length) {
-        alert('No data to export');
-        return;
-      }
-
-      const mappedData = data.map(row => {
-        const newRow: Record<string, any> = {};
-        headers.forEach(h => {
-          const val = row[h.key];
-          newRow[h.label] = Array.isArray(val) ? val.join(';') : val ?? '';
+            
+            // Handle arrays
+            if (Array.isArray(value)) {
+              processedRow[header.label] = value.join(';');
+            } else {
+              processedRow[header.label] = value ?? '';
+            }
+          });
+          
+          return processedRow;
         });
-        return newRow;
-      });
+      }
+    );
 
-      const worksheet = XLSX.utils.json_to_sheet(mappedData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-      XLSX.writeFile(workbook, `${Date.now()}_table_export.xlsx`);
-    });
-
-    const downloadPDF = $((data: any[], headers: { key: string; label: string }[]) => {
-      if (!data.length || !headers.length) {
-        alert('No data to export');
+    const downloadCSV = $(async (headers: { key: string; label: string }[]) => {
+      if (!headers.length) {
+        alert('No columns selected for export');
         return;
       }
 
-      const format = pickPdfFormat(headers.length);
-      const doc = new jsPDF({ 
-        orientation: 'landscape', 
-        unit: 'pt', 
-        format: format === undefined ? 'a4' : format, 
-        putOnlyUsedFonts: true, 
-        floatPrecision: 16 
-      });
+      exportLoading.value = true;
+      try {
+        const allData = await getAllDataForExport();
+        
+        if (!allData.length) {
+          alert('No data to export');
+          return;
+        }
 
-      const tableHeaders = headers.map(h => h.label);
-      const tableRows = data.map(row =>
-        headers.map(h => {
-          let val = row[h.key];
-          if (Array.isArray(val)) {
-            val = val.join(', ');
-          }
-          if (val == null) return '';
-          return String(val).replace(/[\r\n]+/g, ' ').trim();
-        })
-      );
+        const processedData = await processDataForExport(allData, headers);
+        
+        const csvHeader = headers.map((h) => `"${h.label}"`).join(',');
+        const csvRows = processedData.map((row) =>
+          headers
+            .map((h) => {
+              const val = row[h.label];
+              return `"${val.toString().replace(/"/g, '""')}"`;
+            })
+            .join(',')
+        );
 
-      const columnStyles: { [key: number]: { cellWidth: number } } = {};
-      for (let i = 0; i < tableHeaders.length; i++) {
-        columnStyles[i] = { cellWidth: 100 };
+        const csvContent = [csvHeader, ...csvRows].join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${Date.now()}_table_export_all_data.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Error exporting data. Please try again.');
+      } finally {
+        exportLoading.value = false;
+      }
+    });
+
+    const downloadExcel = $(async (headers: { key: string; label: string }[]) => {
+      if (!headers.length) {
+        alert('No columns selected for export');
+        return;
       }
 
-      autoTable(doc, {
-        head: [tableHeaders],
-        body: tableRows,
-        styles: {
-          fontSize: 8,
-          cellPadding: 2,
-          overflow: 'ellipsize',
-          halign: 'left',
-          valign: 'middle',
-        },
-        headStyles: {
-          fillColor: [22, 160, 133],
-          textColor: 255,
-        },
-        theme: 'striped',
-        margin: { top: 20 },
-        didDrawPage: (data) => {
-          doc.setFontSize(10);
-          doc.text('Exported Table Report', data.settings.margin.left, 10);
+      exportLoading.value = true;
+      try {
+        const allData = await getAllDataForExport();
+        
+        if (!allData.length) {
+          alert('No data to export');
+          return;
         }
-      });
 
-      doc.save(`${Date.now()}_table_export.pdf`);
+        const processedData = await processDataForExport(allData, headers);
+        
+        const worksheet = XLSX.utils.json_to_sheet(processedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+        XLSX.writeFile(workbook, `${Date.now()}_table_export_all_data.xlsx`);
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Error exporting data. Please try again.');
+      } finally {
+        exportLoading.value = false;
+      }
+    });
+
+    const downloadPDF = $(async (headers: { key: string; label: string }[]) => {
+      if (!headers.length) {
+        alert('No columns selected for export');
+        return;
+      }
+
+      exportLoading.value = true;
+      try {
+        const allData = await getAllDataForExport();
+        
+        if (!allData.length) {
+          alert('No data to export');
+          return;
+        }
+
+        const processedData = await processDataForExport(allData, headers);
+
+        const format = pickPdfFormat(headers.length);
+        const doc = new jsPDF({ 
+          orientation: 'landscape', 
+          unit: 'pt', 
+          format: format === undefined ? 'a4' : format, 
+          putOnlyUsedFonts: true, 
+          floatPrecision: 16 
+        });
+
+        const tableHeaders = headers.map(h => h.label);
+        const tableRows = processedData.map(row =>
+          headers.map(h => {
+            const val = row[h.label];
+            if (val == null) return '';
+            return String(val).replace(/[\r\n]+/g, ' ').trim();
+          })
+        );
+
+        const columnStyles: { [key: number]: { cellWidth: number } } = {};
+        for (let i = 0; i < tableHeaders.length; i++) {
+          columnStyles[i] = { cellWidth: 100 };
+        }
+
+        autoTable(doc, {
+          head: [tableHeaders],
+          body: tableRows,
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: 'ellipsize',
+            halign: 'left',
+            valign: 'middle',
+          },
+          headStyles: {
+            fillColor: [22, 160, 133],
+            textColor: 255,
+          },
+          theme: 'striped',
+          margin: { top: 20 },
+          didDrawPage: (data) => {
+            doc.setFontSize(10);
+            doc.text('Exported Table Report (All Data)', data.settings.margin.left, 10);
+          }
+        });
+
+        doc.save(`${Date.now()}_table_export_all_data.pdf`);
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Error exporting data. Please try again.');
+      } finally {
+        exportLoading.value = false;
+      }
     });
 
     const colWidths = useStore<Record<string, string>>({});
@@ -545,35 +747,56 @@ export const P9ETable = component$(
                     <button
                       onClick$={() =>
                         downloadCSV(
-                          finalData.items,
                           props.header.map((h) => ({ key: String(h.key), label: h.label }))
                         )
                       }
+                      disabled={exportLoading.value}
                       class="export-btn csv-btn"
                     >
-                      📊 CSV
+                      {exportLoading.value ? (
+                        <div class="export-loading">
+                          <div class="export-spinner"></div>
+                          Exporting...
+                        </div>
+                      ) : (
+                        <>📊 CSV (All)</>
+                      )}
                     </button>
                     <button
                       onClick$={() =>
                         downloadExcel(
-                          finalData.items,
                           props.header.map((h) => ({ key: String(h.key), label: h.label }))
                         )
                       }
+                      disabled={exportLoading.value}
                       class="export-btn excel-btn"
                     >
-                      📈 Excel
+                      {exportLoading.value ? (
+                        <div class="export-loading">
+                          <div class="export-spinner"></div>
+                          Exporting...
+                        </div>
+                      ) : (
+                        <>📈 Excel (All)</>
+                      )}
                     </button>
                     <button
                       onClick$={() =>
                         downloadPDF(
-                          finalData.items,
                           props.header.map((h) => ({ key: String(h.key), label: h.label }))
                         )
                       }
+                      disabled={exportLoading.value}
                       class="export-btn pdf-btn"
                     >
-                      📄 PDF
+                      {exportLoading.value ? (
+                        <div class="export-loading">
+                          <div class="export-spinner"></div>
+                          Exporting...
+                        </div>
+                      ) : (
+                        <>📄 PDF (All)</>
+                      )}
                     </button>
                   </div>
                 )}
@@ -587,10 +810,6 @@ export const P9ETable = component$(
                 pageNo={pageNo}
                 postPerPage={postPerPage}
                 totalPosts={serverPagination ? totalCountSignal : totalPosts}
-                // onPageChange$ = {props.onPageChange$(page, limit)}
-                // onChange$={(page, limit) => {
-                //   if (props.onPageChange$) props.onPageChange$(page, limit);
-                // }}
               />
             </div>
 
@@ -641,6 +860,9 @@ export const P9ETable = component$(
               <div class="footer-stats">
                 <div class="flex items-center gap-4">
                   <span>Showing {finalData.items.length} of {serverPagination ? totalCountSignal.value : totalPosts.value} entries</span>
+                  {exportLoading.value && (
+                    <span class="text-blue-600 text-sm">Exporting all data...</span>
+                  )}
                 </div>
                 <div class="flex items-center gap-2 text-xs">
                   <span class="inline-block w-2 h-2 bg-green-400 rounded-full"></span>
